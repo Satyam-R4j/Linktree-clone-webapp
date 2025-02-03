@@ -1,38 +1,128 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
+
+import { ToastContainer, toast } from "react-toastify";
 
 const Generate = () => {
+  // const [link, setLink] = useState("");
+  // const [linktext, setLinktext] = useState("");
+  const [links, setLinks] = useState([{ link: "", linktext: "" }]);
+  const [handle, setHandle] = useState("");
+  const [pic, setPic] = useState("");
+
+  const handleChange = (index, link, linktext) => {
+    setLinks((initLinks) => {
+      return initLinks.map((item, i) => {
+        if (i == index) {
+          return { link, linktext };
+        } else {
+          return item;
+        }
+      });
+    });
+  };
+
+  const addLink = () => {
+    setLinks(links.concat([{ link: "", linktext: "" }]));
+  };
+
+  const submitLinks = async (text, link, handle) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    const raw = JSON.stringify({
+      links: links,
+      handle: handle,
+      pic: pic,
+    });
+    console.log(raw);
+
+    const requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    };
+
+    const req = await fetch("http://localhost:3000/api/add", requestOptions);
+    const result = await req.json();
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
+    }
+    // setLinks("");
+  };
+
   return (
     <div className="bg-white min-h-screen grid grid-cols-2">
-      <div className="  text-white  pt-44">
+      <div className="overflow-y-auto h-screen scrollbar-hide  text-white  pt-44">
+        <ToastContainer />
         <div className="form flex justify-center  text-black  flex-col ml-[5vw] ">
-        <img className="w-36" src="/logo2.svg" alt="logo with green" />
+          <img className="w-36" src="/logo2.svg" alt="logo with green" />
           <div className="flex flex-col gap-5 my-4">
             <input
+              value={handle || ""}
+              onChange={(e) => {
+                setHandle(e.target.value);
+              }}
               className="p-4  w-80  rounded-full border-2 focus:outline-yellow-600 border-black"
               type="text"
               placeholder="Choose a handle"
             />
-            <div className=" flex gap-1 ">
+            {links &&
+              links.map((item, index) => {
+                return (
+                  <React.Fragment key={index}>
+                    {" "}
+                    <div className=" flex gap-1 ">
+                      <input
+                        value={item.linktext || ""}
+                        onChange={(e) => {
+                          handleChange(index, item.link, e.target.value);
+                        }}
+                        className="py-4  px-2 rounded-full border-2 focus:outline-yellow-600 border-black"
+                        type="text"
+                        placeholder="Enter link text"
+                      />
+                      <input
+                        value={item.link || ""}
+                        onChange={(e) => {
+                          handleChange(index, e.target.value, item.linktext);
+                        }}
+                        className="py-4  px-2   rounded-full border-2 focus:outline-yellow-600 border-black"
+                        type="text"
+                        placeholder="Enter link "
+                      />
+                    </div>
+                  </React.Fragment>
+                );
+              })}
 
-                <input
-              className="py-4  px-2 rounded-full border-2 focus:outline-yellow-600 border-black"
-              type="text"
-              placeholder="Enter link text"
-            />
+            <button
+              onClick={() => addLink()}
+              className=" hover:bg-slate-700 w-20  font-semibold rounded-full bg-slate-900 text-white px-4 py-1 "
+            >
+              Add
+            </button>
+
             <input
-              className="py-4  px-2   rounded-full border-2 focus:outline-yellow-600 border-black"
+              value={pic || ""}
+              onChange={(e) => {
+                setPic(e.target.value);
+              }}
+              className="p-4   w-80 rounded-full border-2 focus:outline-yellow-600 border-black"
               type="text"
-              placeholder="Enter link "
+              placeholder="Enter link to your Picture"
             />
-            <button className=" hover:bg-slate-700 w-20  font-semibold rounded-full bg-slate-900 text-white px-4 py-1 ">Add</button>
-            </div>
-            
-            <input
-              className="p-4  w-80 rounded-full border-2 focus:outline-yellow-600 border-black"
-              type="text"
-              placeholder="Enter link to your Picture" 
-            />
-            <button className=" hover:bg-slate-700 w-1/2  font-semibold rounded-full bg-slate-900 text-white p-4">Generate</button>
+            <button
+              onClick={() => {
+                submitLinks();
+              }}
+              className=" hover:bg-slate-700 w-1/3  font-semibold rounded-full bg-slate-900 text-white p-4"
+            >
+              Generate
+            </button>
           </div>
         </div>
       </div>
