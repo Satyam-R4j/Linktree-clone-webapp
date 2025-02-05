@@ -1,13 +1,12 @@
 "use client";
 import React, { useState } from "react";
-
 import { ToastContainer, toast } from "react-toastify";
+import {useSearchParams} from 'next/navigation'
 
 const Generate = () => {
-  // const [link, setLink] = useState("");
-  // const [linktext, setLinktext] = useState("");
+  const searchParams = useSearchParams()
   const [links, setLinks] = useState([{ link: "", linktext: "" }]);
-  const [handle, setHandle] = useState("");
+  const [handle, setHandle] = useState(searchParams.get('handle'));
   const [pic, setPic] = useState("");
 
   const handleChange = (index, link, linktext) => {
@@ -26,10 +25,10 @@ const Generate = () => {
     setLinks(links.concat([{ link: "", linktext: "" }]));
   };
 
-  const submitLinks = async (text, link, handle) => {
+  const submitLinks = async () => {
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-
+   
     const raw = JSON.stringify({
       links: links,
       handle: handle,
@@ -48,10 +47,11 @@ const Generate = () => {
     const result = await req.json();
     if (result.success) {
       toast.success(result.message);
+      setLinks([{ link: "", linktext: "" }]);
+      setPic("");
     } else {
       toast.error(result.message);
     }
-    // setLinks("");
   };
 
   return (
@@ -116,10 +116,11 @@ const Generate = () => {
               placeholder="Enter link to your Picture"
             />
             <button
+              disabled={pic == "" || handle == "" || links[0].linktext == ""}
               onClick={() => {
                 submitLinks();
               }}
-              className=" hover:bg-slate-700 w-1/3  font-semibold rounded-full bg-slate-900 text-white p-4"
+              className="disabled:bg-slate-500  hover:bg-slate-700 w-1/3  font-semibold rounded-full bg-slate-900 text-white p-4"
             >
               Generate
             </button>
